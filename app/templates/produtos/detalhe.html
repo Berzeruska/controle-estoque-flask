@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, situacao, tipo, qtd %}
+{% block titulo %}{{ produto.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <div>
+    <p class="sku">{{ produto.sku }} · {{ produto.categoria }}</p>
+    <h1>{{ produto.nome }} {{ situacao(produto) }}</h1>
+  </div>
+  <div class="acoes">
+    {% if produto.ativo %}
+    <a class="botao entrada" href="{{ url_for('movimentacoes.nova', produto=produto.id, tipo='entrada') }}">▲ Entrada</a>
+    <a class="botao saida" href="{{ url_for('movimentacoes.nova', produto=produto.id, tipo='saida') }}">▼ Saída</a>
+    {% endif %}
+    {% if usuario_atual.is_admin %}
+    <a class="botao" href="{{ url_for('produtos.editar', pid=produto.id) }}">Editar</a>
+    <form method="post" action="{{ url_for('produtos.alternar_ativo', pid=produto.id) }}">
+      {{ csrf() }}<button class="botao">{{ 'Desativar' if produto.ativo else 'Reativar' }}</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<section class="indicadores">
+  <article><span>Saldo</span><strong>{{ produto.estoque }} <small>{{ produto.unidade }}</small></strong></article>
+  <article><span>Estoque mínimo</span><strong>{{ produto.estoque_minimo }}</strong></article>
+  <article><span>Custo médio</span><strong>{{ produto.custo_medio_centavos | brl }}</strong></article>
+  <article><span>Valor em estoque</span><strong>{{ produto.valor_estoque_centavos | brl }}</strong></article>
+</section>
+
+<section class="painel-bloco">
+  <div class="cabecalho-bloco">
+    <h2>Livro-razão</h2>
+    <a class="mais" href="{{ url_for('movimentacoes.exportar', produto=produto.id) }}">Exportar CSV</a>
+  </div>
+  {% if movs %}
+  <table class="tabela">
+    <thead><tr><th>#</th><th>Data</th><th>Tipo</th><th class="dir">Qtd.</th><th class="dir">Valor</th><th class="dir">Saldo</th><th>Responsável</th><th>Doc. / motivo</th>{% if usuario_atual.is_admin %}<th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for m in movs %}
+      <tr class="{{ 'apagado' if m.estornada_por }}">
+        <td class="num">{{ m.id }}</td>
+        <td class="num">{{ m.criado_em | data }}</td>
+        <td>{{ tipo(m) }}</td>
+        <td class="dir">{{ qtd(m) }}</td>
+        <td class="dir num">{{ m.valor_total_centavos | brl }}</td>
+        <td class="dir num"><b>{{ m.saldo_apos }}</b></td>
+        <td>{{ m.usuario.nome }}</td>
+        <td>{% if m.documento %}<code>{{ m.documento }}</code> {% endif %}{{ m.motivo or '' }}</td>
+        {% if usuario_atual.is_admin %}
+        <td>
+          {% if not m.estornada_por and not m.estorno_de_id %}
+          <details class="estorno">
+            <summary>Estornar</summary>
+            <form method="post" action="{{ url_for('movimentacoes.estornar', mid=m.id) }}">
+              {{ csrf() }}
+              <input name="motivo" placeholder="Motivo do estorno" required>
+              <button class="botao pequeno saida">Confirmar</button>
+            </form>
+          </details>
+          {% endif %}
+        </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="nada">Sem movimentações. Registre a primeira entrada.</p>{% endif %}
+</section>
+{% endblock %}

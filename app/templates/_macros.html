@@ -1,0 +1,17 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro situacao(p) %}
+  {% if not p.ativo %}<span class="selo selo-inativo">inativo</span>
+  {% elif p.situacao == 'zerado' %}<span class="selo selo-zerado">zerado</span>
+  {% elif p.situacao == 'baixo' %}<span class="selo selo-baixo">baixo</span>
+  {% else %}<span class="selo selo-ok">ok</span>{% endif %}
+{% endmacro %}
+
+{% macro tipo(m) %}
+  {% if m.tipo.value == 'entrada' %}<span class="tipo tipo-entrada">▲ entrada</span>
+  {% else %}<span class="tipo tipo-saida">▼ saída</span>{% endif %}
+  {% if m.estorno_de_id %}<span class="selo selo-estorno">estorno de #{{ m.estorno_de_id }}</span>{% endif %}
+  {% if m.estornada_por %}<span class="selo selo-estornada">estornada</span>{% endif %}
+{% endmacro %}
+
+{% macro qtd(m) %}<span class="num {{ 'pos' if m.tipo.value == 'entrada' else 'neg' }}">{{ '+' if m.tipo.value == 'entrada' else '−' }}{{ m.quantidade }}</span>{% endmacro %}

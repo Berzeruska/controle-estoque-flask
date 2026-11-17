@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Usuários{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Usuários</h1>
+  <a class="botao primario" href="{{ url_for('usuarios.novo') }}">+ Novo usuário</a>
+</div>
+<table class="tabela">
+  <thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Último acesso</th><th>Situação</th><th></th></tr></thead>
+  <tbody>
+  {% for u in usuarios %}
+    <tr class="{{ 'apagado' if not u.ativo }}">
+      <td>{{ u.nome }}</td>
+      <td>{{ u.email }}</td>
+      <td><span class="papel">{{ u.papel.value }}</span></td>
+      <td class="num">{{ u.ultimo_login | data }}</td>
+      <td>{{ 'ativo' if u.ativo else 'desativado' }}</td>
+      <td>
+        {% if u.id != usuario_atual.id %}
+        <form method="post" action="{{ url_for('usuarios.alternar_ativo', uid=u.id) }}">
+          {{ csrf() }}<button class="botao pequeno">{{ 'Desativar' if u.ativo else 'Reativar' }}</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

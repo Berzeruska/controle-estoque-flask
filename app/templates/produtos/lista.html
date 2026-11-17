@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_macros.html" import situacao %}
+{% block titulo %}Produtos{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Produtos</h1>
+  {% if usuario_atual.is_admin %}<a class="botao primario" href="{{ url_for('produtos.novo') }}">+ Novo produto</a>{% endif %}
+</div>
+
+<form class="filtros" method="get">
+  <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome, SKU ou categoria">
+  <select name="situacao">
+    <option value="">Todas as situações</option>
+    {% for s in ['ok', 'baixo', 'zerado'] %}<option value="{{ s }}" {{ 'selected' if situacao == s }}>{{ s }}</option>{% endfor %}
+  </select>
+  <label class="check"><input type="checkbox" name="inativos" value="1" {{ 'checked' if mostrar_inativos }}> inativos</label>
+  <button class="botao">Filtrar</button>
+</form>
+
+{% if produtos %}
+<table class="tabela">
+  <thead><tr>
+    <th>SKU</th><th>Produto</th><th>Categoria</th>
+    <th class="dir">Saldo</th><th class="dir">Mínimo</th><th class="dir">Custo médio</th><th class="dir">Valor</th><th>Situação</th>
+  </tr></thead>
+  <tbody>
+  {% for p in produtos %}
+    <tr class="{{ 'apagado' if not p.ativo }}">
+      <td class="sku">{{ p.sku }}</td>
+      <td><a href="{{ url_for('produtos.detalhe', pid=p.id) }}">{{ p.nome }}</a></td>
+      <td>{{ p.categoria }}</td>
+      <td class="dir num">{{ p.estoque }} <small>{{ p.unidade }}</small></td>
+      <td class="dir num">{{ p.estoque_minimo }}</td>
+      <td class="dir num">{{ p.custo_medio_centavos | brl }}</td>
+      <td class="dir num">{{ p.valor_estoque_centavos | brl }}</td>
+      <td>{{ situacao(p) }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="nada">Nenhum produto encontrado.</p>
+{% endif %}
+{% endblock %}

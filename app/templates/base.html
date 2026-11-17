@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Almoxarifado{% endblock %} · Controle de Estoque</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='icone.svg') }}" type="image/svg+xml">
+</head>
+<body>
+{% if usuario_atual %}
+<header class="topo">
+  <a class="marca" href="{{ url_for('painel.inicio') }}">
+    <img src="{{ url_for('static', filename='icone.svg') }}" alt="" width="22" height="22">
+    Almoxarifado
+  </a>
+  <nav>
+    {% set ep = request.endpoint or '' %}
+    <a href="{{ url_for('painel.inicio') }}" class="{{ 'ativo' if ep.startswith('painel') }}">Painel</a>
+    <a href="{{ url_for('produtos.lista') }}" class="{{ 'ativo' if ep.startswith('produtos') }}">Produtos</a>
+    <a href="{{ url_for('movimentacoes.lista') }}" class="{{ 'ativo' if ep.startswith('movimentacoes') }}">Movimentações</a>
+    {% if usuario_atual.is_admin %}
+    <a href="{{ url_for('usuarios.lista') }}" class="{{ 'ativo' if ep.startswith('usuarios.lista') or ep.startswith('usuarios.novo') }}">Usuários</a>
+    {% endif %}
+  </nav>
+  <div class="conta">
+    <a href="{{ url_for('usuarios.minha_senha') }}" title="Trocar senha">{{ usuario_atual.nome }}</a>
+    <span class="papel">{{ usuario_atual.papel.value }}</span>
+    <form method="post" action="{{ url_for('auth.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="link">Sair</button>
+    </form>
+  </div>
+</header>
+{% endif %}
+
+<main class="{% block classe_main %}conteudo{% endblock %}">
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+    <div class="avisos">
+      {% for cat, msg in mensagens %}<p class="aviso aviso-{{ cat }}">{{ msg }}</p>{% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+  {% block conteudo %}{% endblock %}
+</main>
+</body>
+</html>

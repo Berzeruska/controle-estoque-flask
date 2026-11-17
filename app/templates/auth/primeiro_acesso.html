@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Primeiro acesso{% endblock %}
+{% block classe_main %}tela-acesso{% endblock %}
+{% block conteudo %}
+<section class="cartao-acesso">
+  <div class="marca grande">
+    <img src="{{ url_for('static', filename='icone.svg') }}" alt="" width="36" height="36">
+    Primeiro acesso
+  </div>
+  <p class="sub">Nenhum usuário cadastrado. Crie o administrador do sistema.</p>
+  <form method="post">
+    {{ csrf() }}
+    <label>Nome <input name="nome" value="{{ form.get('nome', '') }}" required></label>
+    <label>E-mail <input type="email" name="email" value="{{ form.get('email', '') }}" required></label>
+    <label>Senha <input type="password" name="senha" minlength="8" autocomplete="new-password" required></label>
+    <label>Confirme a senha <input type="password" name="confirmacao" minlength="8" autocomplete="new-password" required></label>
+    <p class="dica">Mínimo de 8 caracteres, com letras e números.</p>
+    <button class="botao primario largo">Criar administrador</button>
+  </form>
+</section>
+{% endblock %}

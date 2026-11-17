@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Nova movimentação{% endblock %}
+{% block conteudo %}
+{% set tipo_sel = form.get('tipo', 'entrada') %}
+{% set pid_sel = form.get('produto', '')|string %}
+{% set prod_sel = (produtos | selectattr('id', 'equalto', pid_sel|int) | first) if pid_sel else none %}
+<div class="cabecalho"><h1>Nova movimentação</h1></div>
+
+<form method="post" class="formulario">
+  {{ csrf() }}
+  <fieldset class="seletor-tipo">
+    <label class="opcao entrada"><input type="radio" name="tipo" value="entrada" {{ 'checked' if tipo_sel == 'entrada' }}> ▲ Entrada</label>
+    <label class="opcao saida"><input type="radio" name="tipo" value="saida" {{ 'checked' if tipo_sel == 'saida' }}> ▼ Saída</label>
+  </fieldset>
+
+  <label>Produto
+    <select name="produto" required>
+      <option value="">Selecione…</option>
+      {% for p in produtos %}
+      <option value="{{ p.id }}" {{ 'selected' if pid_sel == p.id|string }}>{{ p.sku }} — {{ p.nome }} (saldo {{ p.estoque }} {{ p.unidade }})</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <div class="linha">
+    <label>Quantidade <input type="number" name="quantidade" min="1" step="1" value="{{ form.get('quantidade', '') }}" required></label>
+    <label class="so-entrada">Custo unitário (R$)
+      <input name="custo_unitario" inputmode="decimal" placeholder="0,00"
+             value="{{ form.get('custo_unitario') or (prod_sel.custo_medio_centavos | reais_input if prod_sel and prod_sel.estoque else '') }}">
+    </label>
+    <label class="cresce">Documento <input name="documento" maxlength="60" value="{{ form.get('documento', '') }}" placeholder="NF 1234, pedido 56…"></label>
+  </div>
+  <label>Motivo / observação <input name="motivo" value="{{ form.get('motivo', '') }}" placeholder="Opcional"></label>
+
+  <p class="dica">O custo unitário só vale para entradas. Saídas são valoradas automaticamente pelo <b>custo médio ponderado</b> do produto.</p>
+  <div class="acoes">
+    <button class="botao primario">Registrar</button>
+    <a class="botao" href="{{ url_for('produtos.detalhe', pid=pid_sel) if prod_sel else url_for('painel.inicio') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

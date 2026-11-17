@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "_macros.html" import situacao, tipo, qtd %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Painel</h1>
+  <div class="acoes">
+    <a class="botao entrada" href="{{ url_for('movimentacoes.nova', tipo='entrada') }}">▲ Entrada</a>
+    <a class="botao saida" href="{{ url_for('movimentacoes.nova', tipo='saida') }}">▼ Saída</a>
+  </div>
+</div>
+
+<section class="indicadores">
+  <article><span>Produtos ativos</span><strong>{{ totais.produtos }}</strong></article>
+  <article><span>Unidades em estoque</span><strong>{{ '{:,}'.format(totais.unidades).replace(',', '.') }}</strong></article>
+  <article><span>Valor em estoque</span><strong>{{ totais.valor | brl }}</strong><small>pelo custo médio</small></article>
+  <article class="{{ 'alerta' if totais.alertas }}"><span>Abaixo do mínimo</span><strong>{{ totais.alertas }}</strong></article>
+</section>
+
+<div class="grade-2">
+  <section class="painel-bloco">
+    <h2>Reposição necessária</h2>
+    {% if alertas %}
+    <table>
+      <thead><tr><th>Produto</th><th class="dir">Saldo</th><th class="dir">Mínimo</th><th></th></tr></thead>
+      <tbody>
+      {% for p in alertas %}
+        <tr>
+          <td><a href="{{ url_for('produtos.detalhe', pid=p.id) }}">{{ p.nome }}</a><br><small class="sku">{{ p.sku }}</small></td>
+          <td class="dir num">{{ p.estoque }} {{ p.unidade }}</td>
+          <td class="dir num">{{ p.estoque_minimo }}</td>
+          <td>{{ situacao(p) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="nada">Todos os produtos acima do mínimo.</p>{% endif %}
+  </section>
+
+  <section class="painel-bloco">
+    <h2>Fluxo dos últimos 7 dias</h2>
+    <div class="fluxo">
+      <div><span>Entradas</span><meter class="m-entrada" min="0" max="{{ maior }}" value="{{ fluxo.entrada }}"></meter><b class="num pos">{{ fluxo.entrada }}</b></div>
+      <div><span>Saídas</span><meter class="m-saida" min="0" max="{{ maior }}" value="{{ fluxo.saida }}"></meter><b class="num neg">{{ fluxo.saida }}</b></div>
+    </div>
+
+    <h2>Últimas movimentações</h2>
+    {% if ultimas %}
+    <ul class="linha-tempo">
+      {% for m in ultimas %}
+      <li>
+        {{ qtd(m) }}
+        <a href="{{ url_for('produtos.detalhe', pid=m.produto_id) }}">{{ m.produto.nome }}</a>
+        <small>{{ m.criado_em | data }} · {{ m.usuario.nome }}</small>
+      </li>
+      {% endfor %}
+    </ul>
+    <a class="mais" href="{{ url_for('movimentacoes.lista') }}">Ver todas →</a>
+    {% else %}<p class="nada">Nenhuma movimentação ainda.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

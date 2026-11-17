@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Novo usuário{% endblock %}
+{% block conteudo %}
+<div class="cabecalho"><h1>Novo usuário</h1></div>
+<form method="post" class="formulario">
+  {{ csrf() }}
+  <div class="linha">
+    <label class="cresce">Nome <input name="nome" value="{{ form.get('nome', '') }}" required></label>
+    <label class="cresce">E-mail <input type="email" name="email" value="{{ form.get('email', '') }}" required></label>
+  </div>
+  <div class="linha">
+    <label class="cresce">Senha inicial <input type="password" name="senha" minlength="8" autocomplete="new-password" required></label>
+    <label>Papel
+      <select name="papel">
+        <option value="operador" {{ 'selected' if form.get('papel') != 'admin' }}>operador — registra entradas e saídas</option>
+        <option value="admin" {{ 'selected' if form.get('papel') == 'admin' }}>admin — tudo, inclusive estornos e usuários</option>
+      </select>
+    </label>
+  </div>
+  <div class="acoes">
+    <button class="botao primario">Criar</button>
+    <a class="botao" href="{{ url_for('usuarios.lista') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

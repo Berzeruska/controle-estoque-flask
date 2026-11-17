@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tipo, qtd %}
+{% block titulo %}Movimentações{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Movimentações</h1>
+  <div class="acoes">
+    <a class="botao" href="{{ url_for('movimentacoes.exportar', **filtros) }}">Exportar CSV</a>
+    <a class="botao primario" href="{{ url_for('movimentacoes.nova') }}">+ Nova</a>
+  </div>
+</div>
+
+<form class="filtros" method="get">
+  <select name="produto">
+    <option value="">Todos os produtos</option>
+    {% for p in produtos %}<option value="{{ p.id }}" {{ 'selected' if filtros.get('produto') == p.id|string }}>{{ p.sku }} — {{ p.nome }}</option>{% endfor %}
+  </select>
+  <select name="tipo">
+    <option value="">Entradas e saídas</option>
+    <option value="entrada" {{ 'selected' if filtros.get('tipo') == 'entrada' }}>Só entradas</option>
+    <option value="saida" {{ 'selected' if filtros.get('tipo') == 'saida' }}>Só saídas</option>
+  </select>
+  <label class="check">de <input type="date" name="de" value="{{ filtros.get('de', '') }}"></label>
+  <label class="check">até <input type="date" name="ate" value="{{ filtros.get('ate', '') }}"></label>
+  <button class="botao">Filtrar</button>
+  {% if filtros %}<a class="mais" href="{{ url_for('movimentacoes.lista') }}">limpar</a>{% endif %}
+</form>
+
+{% if pagina.items %}
+<table class="tabela">
+  <thead><tr><th>#</th><th>Data</th><th>Produto</th><th>Tipo</th><th class="dir">Qtd.</th><th class="dir">Valor</th><th class="dir">Saldo</th><th>Responsável</th><th>Documento</th></tr></thead>
+  <tbody>
+  {% for m in pagina.items %}
+    <tr class="{{ 'apagado' if m.estornada_por }}">
+      <td class="num">{{ m.id }}</td>
+      <td class="num">{{ m.criado_em | data }}</td>
+      <td><a href="{{ url_for('produtos.detalhe', pid=m.produto_id) }}">{{ m.produto.nome }}</a></td>
+      <td>{{ tipo(m) }}</td>
+      <td class="dir">{{ qtd(m) }}</td>
+      <td class="dir num">{{ m.valor_total_centavos | brl }}</td>
+      <td class="dir num">{{ m.saldo_apos }}</td>
+      <td>{{ m.usuario.nome }}</td>
+      <td>{% if m.documento %}<code>{{ m.documento }}</code>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if pagina.pages > 1 %}
+<nav class="paginacao">
+  {% if pagina.has_prev %}<a href="{{ url_for('movimentacoes.lista', page=pagina.prev_num, **filtros) }}">← anterior</a>{% endif %}
+  <span>página {{ pagina.page }} de {{ pagina.pages }} · {{ pagina.total }} lançamentos</span>
+  {% if pagina.has_next %}<a href="{{ url_for('movimentacoes.lista', page=pagina.next_num, **filtros) }}">próxima →</a>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<p class="nada">Nenhuma movimentação encontrada.</p>
+{% endif %}
+{% endblock %}

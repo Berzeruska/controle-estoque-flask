@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}{{ 'Editar' if produto else 'Novo' }} produto{% endblock %}
+{% block conteudo %}
+<div class="cabecalho"><h1>{{ 'Editar ' ~ produto.sku if produto else 'Novo produto' }}</h1></div>
+<form method="post" class="formulario">
+  {{ csrf() }}
+  <div class="linha">
+    <label>SKU (código) <input name="sku" value="{{ form.get('sku', '') }}" maxlength="40" required placeholder="ex.: CAB-HDMI-2M"></label>
+    <label class="cresce">Nome <input name="nome" value="{{ form.get('nome', '') }}" maxlength="120" required></label>
+  </div>
+  <div class="linha">
+    <label class="cresce">Categoria <input name="categoria" value="{{ form.get('categoria', '') }}" maxlength="60" placeholder="Geral"></label>
+    <label>Unidade
+      <select name="unidade">
+        {% for u in unidades %}<option {{ 'selected' if form.get('unidade', 'un') == u }}>{{ u }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Estoque mínimo <input type="number" name="estoque_minimo" min="0" step="1" value="{{ form.get('estoque_minimo', 0) }}"></label>
+  </div>
+  <p class="dica">O saldo não se edita aqui: ele só muda por entradas e saídas, para que todo número tenha um lançamento que o justifique.</p>
+  <div class="acoes">
+    <button class="botao primario">Salvar</button>
+    <a class="botao" href="{{ url_for('produtos.detalhe', pid=produto.id) if produto else url_for('produtos.lista') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}
